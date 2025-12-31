@@ -1,12 +1,267 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Hello, my fellow gc members!</title>
-    <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body>
-      <h1 class="title">Hello, my fellow gc members!</h1>
-      <p id="currentTime"></p>
-      <script src="script.js"></script>
-  </body>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>badgirlstan.xyz | The Truth</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Inter:wght@300;400;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-pink: #ff007f;
+            --neon-purple: #bc13fe;
+            --dark-bg: #050505;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: white;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            touch-action: manipulation;
+        }
+
+        .heading-font {
+            font-family: 'Syncopate', sans-serif;
+            text-transform: uppercase;
+        }
+
+        .glow-text {
+            text-shadow: 0 0 10px var(--neon-pink), 0 0 20px var(--neon-pink);
+        }
+
+        .gradient-bg {
+            background: linear-gradient(45deg, #ff007f, #bc13fe, #4e00ff);
+            background-size: 400% 400%;
+            animation: gradient-flow 15s ease infinite;
+        }
+
+        @keyframes gradient-flow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: var(--neon-pink);
+            transform: translateY(-5px);
+        }
+
+        .custom-cursor {
+            width: 20px;
+            height: 20px;
+            background: var(--neon-pink);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            mix-blend-mode: difference;
+            transition: transform 0.1s ease;
+            display: none; 
+        }
+
+        @media (pointer: fine) {
+            .custom-cursor {
+                display: block;
+            }
+        }
+
+        .noise {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: url('https://grainy-gradients.vercel.app/noise.svg');
+            opacity: 0.05;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #050505; }
+        ::-webkit-scrollbar-thumb { background: var(--neon-pink); border-radius: 10px; }
+
+        .hero-title {
+            font-size: clamp(2.5rem, 12vw, 8rem);
+            line-height: 0.9;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="custom-cursor" id="cursor"></div>
+    <div class="noise"></div>
+
+    <header class="relative h-screen flex items-center justify-center overflow-hidden px-4">
+        <div class="absolute inset-0 z-0">
+            <div class="gradient-bg opacity-20 w-full h-full"></div>
+        </div>
+
+        <div class="relative z-10 text-center w-full">
+            <h1 class="heading-font font-black mb-6 tracking-tighter hero-title">
+                STAN IS A <br><span class="glow-text text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">BAD GIRL</span>
+            </h1>
+            <p class="text-sm md:text-2xl font-light tracking-[0.2em] md:tracking-widest opacity-0 hero-subtitle">EST. 2026 • UNAPOLOGETIC • REBEL</p>
+            
+            <div class="mt-12 opacity-0 scroll-hint hidden md:block">
+                <div class="w-1 h-16 bg-gradient-to-b from-pink-500 to-transparent mx-auto rounded-full"></div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-16 md:py-24">
+        
+        <section class="mb-20 md:mb-32">
+            <h2 class="heading-font text-2xl md:text-5xl mb-12 md:mb-16 border-l-4 border-pink-600 pl-4 md:pl-6">The Receipts</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+                <div class="card p-6 md:p-8 rounded-2xl reveal-up">
+                    <div class="text-pink-500 text-3xl md:text-4xl mb-4 font-black">01</div>
+                    <h3 class="text-lg md:text-xl font-bold mb-4 uppercase">Rule Breaker</h3>
+                    <p class="text-gray-400 text-sm md:text-base leading-relaxed">Stan doesn't follow the status quo. If there's a line, she's crossing it. If there's a box, she's burning it.</p>
+                </div>
+
+                <div class="card p-6 md:p-8 rounded-2xl reveal-up">
+                    <div class="text-purple-500 text-3xl md:text-4xl mb-4 font-black">02</div>
+                    <h3 class="text-lg md:text-xl font-bold mb-4 uppercase">Chaotic Energy</h3>
+                    <p class="text-gray-400 text-sm md:text-base leading-relaxed">A whirlwind of spontaneity. Stan thrives in the chaos that others fear. Pure, unadulterated main character energy.</p>
+                </div>
+
+                <div class="card p-6 md:p-8 rounded-2xl reveal-up">
+                    <div class="text-blue-500 text-3xl md:text-4xl mb-4 font-black">03</div>
+                    <h3 class="text-lg md:text-xl font-bold mb-4 uppercase">Heart Stealer</h3>
+                    <p class="text-gray-400 text-sm md:text-base leading-relaxed">Legend says Stan has never met a vibe she couldn't amplify or a heart she couldn't charm into submission.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="relative py-12 md:py-20 rounded-3xl overflow-hidden bg-zinc-900 flex items-center justify-center text-center px-4 md:px-6 mb-20 md:mb-32">
+            <div class="absolute inset-0 opacity-10">
+                <svg viewBox="0 0 100 100" class="w-full h-full">
+                    <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
+                        <path d="M 10 0 L 0 0 0 10" fill="none" stroke="white" stroke-width="0.5"/>
+                    </pattern>
+                    <rect width="100" height="100" fill="url(#grid)" />
+                </svg>
+            </div>
+            <div class="relative z-10">
+                <blockquote class="text-lg md:text-5xl italic font-serif max-w-4xl mx-auto leading-tight reveal-text px-2">
+                    "Being a bad girl isn't about being mean, it's about being <span class="text-pink-500 not-italic font-black">too powerful</span> for standard expectations."
+                </blockquote>
+                <p class="mt-6 md:mt-8 text-pink-500 text-xs md:text-base font-bold uppercase tracking-widest">— The Book of Stan</p>
+            </div>
+        </section>
+
+        <section class="text-center py-12 md:py-20">
+            <h2 class="heading-font text-xl md:text-2xl mb-8">Current Status</h2>
+            <div id="status-box" class="inline-block px-8 md:px-12 py-4 md:py-6 rounded-full border-2 border-white/20 cursor-pointer hover:border-pink-500 transition-all active:scale-95">
+                <span id="status-text" class="text-xl md:text-3xl font-black uppercase tracking-widest">Normal Stan</span>
+            </div>
+            <p class="mt-4 text-xs md:text-sm text-gray-500 italic">Tap to trigger bad girl mode</p>
+        </section>
+    </main>
+
+    <footer class="py-12 border-t border-white/5 text-center text-gray-600 text-[10px] md:text-sm tracking-widest">
+        <p>&copy; 2026 BADGIRLSTAN.XYZ | NO APOLOGIES</p>
+    </footer>
+
+    <script>
+        const cursor = document.getElementById('cursor');
+        
+        if (window.matchMedia("(pointer: fine)").matches) {
+            document.addEventListener('mousemove', (e) => {
+                gsap.to(cursor, {
+                    x: e.clientX - 10,
+                    y: e.clientY - 10,
+                    duration: 0.1
+                });
+            });
+        }
+
+        window.addEventListener('load', () => {
+            const tl = gsap.timeline();
+            
+            tl.from(".hero-title", {
+                y: 50,
+                opacity: 0,
+                duration: 1.2,
+                ease: "power4.out"
+            })
+            .to(".hero-subtitle", {
+                opacity: 1,
+                y: 0,
+                duration: 0.8,
+                ease: "power2.out"
+            }, "-=0.6")
+            .to(".scroll-hint", {
+                opacity: 1,
+                duration: 0.8
+            }, "-=0.2");
+
+            gsap.registerPlugin(ScrollTrigger);
+
+            gsap.utils.toArray(".reveal-up").forEach(el => {
+                gsap.from(el, {
+                    scrollTrigger: {
+                        trigger: el,
+                        start: "top 90%",
+                    },
+                    y: 40,
+                    opacity: 0,
+                    duration: 0.8,
+                    ease: "power3.out"
+                });
+            });
+
+            gsap.from(".reveal-text", {
+                scrollTrigger: {
+                    trigger: ".reveal-text",
+                    start: "top 85%",
+                },
+                opacity: 0,
+                y: 20,
+                duration: 1.2,
+                ease: "power2.out"
+            });
+        });
+
+        const statusBox = document.getElementById('status-box');
+        const statusText = document.getElementById('status-text');
+        let isBad = false;
+
+        statusBox.addEventListener('click', () => {
+            isBad = !isBad;
+            if (isBad) {
+                statusText.innerText = "Bad Girl Mode: ON";
+                statusText.classList.add('glow-text', 'text-pink-500');
+                statusBox.style.borderColor = "#ff007f";
+                gsap.to("body", { backgroundColor: "#1a000d", duration: 0.4 });
+                createGlitchEffect();
+                
+                if (window.navigator.vibrate) {
+                    window.navigator.vibrate(50);
+                }
+            } else {
+                statusText.innerText = "Normal Stan";
+                statusText.classList.remove('glow-text', 'text-pink-500');
+                statusBox.style.borderColor = "rgba(255,255,255,0.2)";
+                gsap.to("body", { backgroundColor: "#050505", duration: 0.4 });
+            }
+        });
+
+        function createGlitchEffect() {
+            const tl = gsap.timeline();
+            tl.to(".hero-title", { x: -5, duration: 0.05 })
+              .to(".hero-title", { x: 5, duration: 0.05 })
+              .to(".hero-title", { x: -2, duration: 0.05 })
+              .to(".hero-title", { x: 0, duration: 0.05 });
+        }
+    </script>
+</body>
 </html>
