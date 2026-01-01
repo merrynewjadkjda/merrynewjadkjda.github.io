@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Breathing Science & Fluid Scenery</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #0f172a;
+            cursor: none;
+            font-family: 'Inter', sans-serif;
+            transition: background-color 1s cubic-bezier(0.4, 0, 0.2, 1);
+            touch-action: none;
+        }
+
+        #custom-cursor {
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 9999;
+            color: #38bdf8;
+            font-weight: bold;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            mix-blend-mode: difference;
+            transition: transform 0.1s linear;
+            white-space: nowrap;
+        }
+
+        @media (hover: none) and (pointer: coarse) {
+            #custom-cursor { display: none; }
+            body { cursor: auto; }
+        }
+
+        #scenery-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 1.5s ease;
+        }
+
+        .scenery-active #scenery-canvas {
+            opacity: 1;
+        }
+
+        .scenery-active {
+            background-color: #020617;
+        }
+
+        #dog-alert {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.5);
+            background-color: #ef4444;
+            color: white;
+            padding: 2rem 4rem;
+            font-size: 3rem;
+            font-weight: 900;
+            border-radius: 1rem;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            box-shadow: 0 0 50px rgba(239, 68, 68, 0.6);
+            transition: all 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #dog-alert.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .bg-pulse {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at var(--x) var(--y), rgba(56, 189, 248, 0.2) 0%, transparent 60%);
+            pointer-events: none;
+            transition: background 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="scenery-canvas"></canvas>
+    <div id="dog-alert">I LIKE DOGS</div>
+    <div id="bg-pulse" class="bg-pulse" style="--x: 50%; --y: 50%;"></div>
+    <div id="custom-cursor">CLICK / R-CLICK</div>
+
+    <div id="main-content" class="flex flex-col items-center justify-center min-h-screen p-6 text-center text-white relative z-10">
+        <div id="initial-hint" class="text-slate-500 text-lg italic pointer-events-none select-none">
+            Click to learn. Right-click or Hold for scenery.<br>
+            <span class="text-xs">Try clicking rapidly...</span>
+        </div>
+
+        <div id="info-card" class="hidden max-w-2xl bg-slate-900/80 backdrop-blur-2xl p-8 rounded-[2rem] border border-white/10 shadow-2xl fade-in">
+            <h1 class="text-3xl md:text-4xl font-bold mb-6 text-sky-400">How Dogs Breathe</h1>
+            
+            <div class="space-y-4 text-base md:text-lg text-slate-300 text-left leading-relaxed">
+                <p><span class="text-sky-300 font-semibold">The Unidirectional Flow:</span> Air is split into smelling and breathing paths upon inhalation.</p>
+                <p><span class="text-sky-300 font-semibold">Exhaling for Efficiency:</span> Slits in the side of the nose create air swirls to pull in more scent molecules.</p>
+                <p><span class="text-sky-300 font-semibold">Thermal Regulation:</span> Panting evaporates moisture from the tongue to cool the blood rapidly.</p>
+            </div>
+
+            <button onclick="resetView(event)" class="mt-8 px-8 py-3 bg-sky-600 hover:bg-sky-500 rounded-full transition-all active:scale-95 font-medium shadow-lg shadow-sky-500/20">
+                Close
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const cursor = document.getElementById('custom-cursor');
+        const bgPulse = document.getElementById('bg-pulse');
+        const infoCard = document.getElementById('info-card');
+        const initialHint = document.getElementById('initial-hint');
+        const dogAlert = document.getElementById('dog-alert');
+        const canvas = document.getElementById('scenery-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let audioCtx;
+        let mainOsc, droneOsc, breathingOsc;
+        let mainGain, droneGain, breathingGain, beepGain;
+        let isSceneryActive = false;
+        let touchTimer;
+        
+        // Rapid click tracking
+        let clickCount = 0;
+        let lastClickTime = 0;
+
+        const boxes = Array.from({ length: 15 }, () => ({
+            x: Math.random() * window.innerWidth,
+            y: Math.random() * window.innerHeight,
+            size: 40 + Math.random() * 80,
+            hue: Math.random() * 360,
+            vx: (Math.random() - 0.5) * 1.5,
+            vy: (Math.random() - 0.5) * 1.5,
+            rotation: Math.random() * Math.PI * 2,
+            vr: (Math.random() - 0.5) * 0.02
+        }));
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        document.addEventListener('mousemove', (e) => {
+            updateInteractionPoint(e.clientX, e.clientY);
+        });
+
+        document.addEventListener('touchstart', (e) => {
+            const touch = e.touches[0];
+            updateInteractionPoint(touch.clientX, touch.clientY);
+            handleRapidClick();
+            
+            touchTimer = setTimeout(() => {
+                toggleScenery(true);
+            }, 600);
+        }, { passive: false });
+
+        document.addEventListener('touchend', (e) => {
+            clearTimeout(touchTimer);
+            if (!audioCtx) initAudio();
+            if (!isSceneryActive && infoCard.classList.contains('hidden')) {
+                showInfo();
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            handleRapidClick();
+            if (e.button === 0 && !isSceneryActive) {
+                if (!audioCtx) initAudio();
+                showInfo();
+            }
+        });
+
+        document.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            toggleScenery();
+        });
+
+        function handleRapidClick() {
+            const now = Date.now();
+            if (now - lastClickTime < 300) {
+                clickCount++;
+            } else {
+                clickCount = 1;
+            }
+            lastClickTime = now;
+
+            if (clickCount >= 3) {
+                triggerDogAlert();
+                clickCount = 0; // Reset
+            }
+        }
+
+        function triggerDogAlert() {
+            if (!audioCtx) initAudio();
+            
+            // Visual Alert
+            dogAlert.classList.add('show');
+            setTimeout(() => dogAlert.classList.remove('show'), 800);
+
+            // High Frequency Beep
+            const b = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            b.type = 'sine';
+            b.frequency.setValueAtTime(2500, audioCtx.currentTime); // Very high pitch
+            g.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+            
+            b.connect(g);
+            g.connect(audioCtx.destination);
+            
+            b.start();
+            b.stop(audioCtx.currentTime + 0.5);
+        }
+
+        function updateInteractionPoint(x, y) {
+            cursor.style.transform = `translate3d(${x + 15}px, ${y + 15}px, 0)`;
+            bgPulse.style.setProperty('--x', `${x}px`);
+            bgPulse.style.setProperty('--y', `${y}px`);
+        }
+
+        function showInfo() {
+            infoCard.classList.remove('hidden');
+            initialHint.classList.add('opacity-0');
+        }
+
+        function toggleScenery(forceState) {
+            if (!audioCtx) initAudio();
+            isSceneryActive = forceState !== undefined ? forceState : !isSceneryActive;
+            
+            if (isSceneryActive) {
+                document.body.classList.add('scenery-active');
+                startBeep();
+                animateScenery();
+            } else {
+                document.body.classList.remove('scenery-active');
+                stopBeep();
+            }
+        }
+
+        function resetView(e) {
+            if(e) e.stopPropagation();
+            infoCard.classList.add('hidden');
+            initialHint.classList.remove('opacity-0');
+            if(isSceneryActive) toggleScenery(false);
+        }
+
+        function initAudio() {
+            if (audioCtx) return;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
+            mainGain = audioCtx.createGain();
+            mainGain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+            droneGain = audioCtx.createGain();
+            droneGain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+            breathingGain = audioCtx.createGain();
+            breathingGain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+            beepGain = audioCtx.createGain();
+            beepGain.gain.setValueAtTime(0, audioCtx.currentTime);
+
+            const lpf = audioCtx.createBiquadFilter();
+            lpf.type = 'lowpass';
+            lpf.frequency.setValueAtTime(300, audioCtx.currentTime);
+
+            mainGain.connect(lpf);
+            droneGain.connect(lpf);
+            breathingGain.connect(lpf);
+            lpf.connect(audioCtx.destination);
+            beepGain.connect(audioCtx.destination);
+
+            mainOsc = audioCtx.createOscillator();
+            mainOsc.type = 'sawtooth';
+            mainOsc.frequency.setValueAtTime(55, audioCtx.currentTime);
+            mainOsc.connect(mainGain);
+            mainOsc.start();
+
+            droneOsc = audioCtx.createOscillator();
+            droneOsc.type = 'sine';
+            droneOsc.frequency.setValueAtTime(55.5, audioCtx.currentTime);
+            droneOsc.connect(droneGain);
+            droneOsc.start();
+
+            breathingOsc = audioCtx.createOscillator();
+            breathingOsc.type = 'sine';
+            breathingOsc.frequency.setValueAtTime(0.2, audioCtx.currentTime);
+            const breathingLfoGain = audioCtx.createGain();
+            breathingLfoGain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+            breathingOsc.connect(breathingLfoGain);
+            breathingLfoGain.connect(breathingGain.gain);
+            
+            const bTone = audioCtx.createOscillator();
+            bTone.type = 'triangle';
+            bTone.frequency.setValueAtTime(110, audioCtx.currentTime);
+            bTone.connect(breathingGain);
+            bTone.start();
+            breathingOsc.start();
+        }
+
+        function startBeep() {
+            if (!audioCtx) return;
+            beepGain.gain.setTargetAtTime(0.2, audioCtx.currentTime, 0.2);
+            
+            this.beepInterval = setInterval(() => {
+                const b = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                b.type = 'square';
+                b.frequency.setValueAtTime(220 + Math.random() * 880, audioCtx.currentTime);
+                g.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+                b.connect(g);
+                g.connect(audioCtx.destination);
+                b.start();
+                b.stop(audioCtx.currentTime + 0.3);
+            }, 150);
+        }
+
+        function stopBeep() {
+            if (beepGain) beepGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1);
+            clearInterval(this.beepInterval);
+        }
+
+        function animateScenery() {
+            if (!isSceneryActive) return;
+            ctx.fillStyle = 'rgba(2, 6, 23, 0.15)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            boxes.forEach(box => {
+                box.x += box.vx;
+                box.y += box.vy;
+                box.rotation += box.vr;
+                if (box.x < -box.size) box.x = canvas.width;
+                if (box.x > canvas.width) box.x = -box.size;
+                if (box.y < -box.size) box.y = canvas.height;
+                if (box.y > canvas.height) box.y = -box.size;
+                box.hue += 0.5;
+                ctx.save();
+                ctx.translate(box.x + box.size/2, box.y + box.size/2);
+                ctx.rotate(box.rotation);
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = `hsla(${box.hue}, 80%, 60%, 0.5)`;
+                ctx.fillStyle = `hsla(${box.hue}, 70%, 50%, 0.2)`;
+                ctx.strokeStyle = `hsla(${box.hue}, 90%, 70%, 0.8)`;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.roundRect(-box.size/2, -box.size/2, box.size, box.size, 12);
+                ctx.fill();
+                ctx.stroke();
+                ctx.restore();
+            });
+            requestAnimationFrame(animateScenery);
+        }
+    </script>
+</body>
+</html>
